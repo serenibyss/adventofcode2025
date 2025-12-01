@@ -18,11 +18,7 @@ fn main() -> io::Result<()> {
 
         let left = direction == 'L';
 
-        rotate(left, amount, &mut dial);
-
-        if dial == 0 {
-            num_zero += 1;
-        }
+        rotate(left, amount, &mut dial, &mut num_zero);
     }
 
     println!("Num Zeroes: {}", num_zero);
@@ -30,7 +26,7 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
-fn rotate(left: bool, amount: i32, dial: &mut i32) {
+fn rotate(left: bool, amount: i32, dial: &mut i32, num_zero: &mut u32) {
     let mut amount = amount;
 
     while amount > 0 {
@@ -47,6 +43,11 @@ fn rotate(left: bool, amount: i32, dial: &mut i32) {
                 *dial += 1;
             }
         }
+
+        if *dial == 0 {
+            *num_zero += 1;
+        }
+
         amount -= 1;
     }
 }
