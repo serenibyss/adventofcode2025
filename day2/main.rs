@@ -34,6 +34,7 @@ fn check_range(start: u64, end: u64, sum: &mut u64) {
     }
 }
 
+#[allow(dead_code)]
 fn is_invalid_id_part_1(id: u64) -> bool {
     let id_str = id.to_string();
     let len = id_str.len();
@@ -45,6 +46,7 @@ fn is_invalid_id_part_1(id: u64) -> bool {
     &id_str[..half] == &id_str[half..]
 }
 
+#[allow(dead_code)]
 fn is_invalid_id_part_2(id: u64) -> bool {
     let id_str = id.to_string();
     let len = id_str.len();
