@@ -47,23 +47,12 @@ impl FreshDB {
     }
 
     fn test_freshness(&self) -> u64 {
-        let mut fresh_count: u64 = 0;
-        for &value in &self.test_values {
-            let mut was_fresh = false;
-
-            for &(start, end) in &self.fresh_ranges {
-                if value >= start && value <= end {
-                    was_fresh = true;
-                    continue;
-                }
-            }
-            if was_fresh {
-                fresh_count += 1;
-                continue;
-            }
-        }
-
-        fresh_count
+        let ranges = &self.fresh_ranges;
+        let values = &self.test_values;
+        values.iter()
+            .filter(|&&value| ranges.iter()
+                .any(|&(start, end)| value >= start && value <= end))
+            .count() as u64
     }
 
     fn collapse_ranges(&mut self) {
