@@ -1,9 +1,10 @@
+use std::cell::RefCell;
 use std::fs::File;
 use std::io;
 use std::io::{BufRead, BufReader};
 
 struct FreshDB {
-    fresh_ranges: Vec<(u64, u64)>,
+    fresh_ranges: RefCell<Vec<(u64, u64)>>,
     test_values: Vec<u64>,
 }
 
@@ -41,16 +42,19 @@ impl FreshDB {
         }
 
         Ok(Self {
-            fresh_ranges: ranges,
+            fresh_ranges: RefCell::new(ranges),
             test_values: values,
         })
     }
 
     fn test_freshness(&self) -> u64 {
         let mut fresh_count: u64 = 0;
+        let ranges = &self.fresh_ranges.borrow();
+
         for &value in &self.test_values {
             let mut was_fresh = false;
-            for &(start, end) in &self.fresh_ranges {
+
+            for &(start, end) in ranges.iter() {
                 if value >= start && value <= end {
                     was_fresh = true;
                     continue;
@@ -64,15 +68,46 @@ impl FreshDB {
 
         fresh_count
     }
+
+    fn collapse_ranges(&self) {
+        let ranges = &mut self.fresh_ranges.borrow_mut();
+        ranges.sort_by_key(|r| r.0);
+
+        let mut collapsed: Vec<(u64, u64)> = Vec::new();
+        let mut current = ranges[0];
+
+        for &(start, end) in ranges.iter().skip(1) {
+            if start <= current.1 {
+                current.1 = current.1.max(end);
+            } else {
+                collapsed.push(current);
+                current = (start, end);
+            }
+        }
+
+        collapsed.push(current);
+        collapsed.clone_into(ranges);
+    }
+
+    fn count_total(&self) -> u64 {
+        let mut total: u64 = 0;
+        self.collapse_ranges();
+
+        let ranges = &self.fresh_ranges.borrow();
+        for &(start, end) in ranges.iter() {
+            total += end - start + 1;
+        }
+
+        total
+    }
 }
 
 fn main() -> io::Result<()> {
     let db = FreshDB::new("day5/input.txt")?;
     println!("Fresh count: {}", db.test_freshness());
+    println!("Fresh ID count: {}", db.count_total());
     Ok(())
 }
-
-
 
 #[cfg(test)]
 mod tests {
@@ -80,8 +115,27 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_part_1() {
+    fn test_test_freshness() {
         let db = FreshDB::new("day5/testdata/input_part_1.txt").unwrap();
         assert_eq!(db.test_freshness(), 3);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_collapse_ranges() {
+        let db = FreshDB::new("day5/testdata/input_part_1.txt").unwrap();
+        db.collapse_ranges();
+        // 3-5 10-20
+        let ranges = db.fresh_ranges.borrow();
+        println!("{:?}", ranges);
+        assert_eq!(ranges[0], (3u64, 5u64));
+        assert_eq!(ranges[1], (10u64, 20u64));
+        assert!(ranges[2] == (0u64, 0u64), "Panicked!");
+    }
+
+    #[test]
+    fn test_count_total() {
+        let db = FreshDB::new("day5/testdata/input_part_1.txt").unwrap();
+        assert_eq!(db.count_total(), 14);
     }
 }
