@@ -36,12 +36,10 @@ fn rotate(left: bool, amount: i32, dial: &mut i32, num_zero: &mut u32) {
             } else {
                 *dial -= 1;
             }
+        } else if *dial == 99 {
+            *dial = 0
         } else {
-            if *dial == 99 {
-                *dial = 0
-            } else {
                 *dial += 1;
-            }
         }
 
         if *dial == 0 {

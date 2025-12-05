@@ -47,10 +47,8 @@ impl FreshDB {
     }
 
     fn test_freshness(&self) -> u64 {
-        let ranges = &self.fresh_ranges;
-        let values = &self.test_values;
-        values.iter()
-            .filter(|&&value| ranges.iter()
+        self.test_values.iter()
+            .filter(|&&value| self.fresh_ranges.iter()
                 .any(|&(start, end)| value >= start && value <= end))
             .count() as u64
     }
@@ -76,13 +74,10 @@ impl FreshDB {
     }
 
     fn count_total(&self) -> u64 {
-        let mut total: u64 = 0;
-
-        for &(start, end) in &self.fresh_ranges {
-            total += end - start + 1;
-        }
-
-        total
+        self.fresh_ranges.iter()
+            .copied()
+            .map(|(start, end)| end - start + 1)
+            .sum()
     }
 }
 

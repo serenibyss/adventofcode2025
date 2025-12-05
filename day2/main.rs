@@ -39,11 +39,11 @@ fn is_invalid_id_part_1(id: u64) -> bool {
     let id_str = id.to_string();
     let len = id_str.len();
 
-    if len % 2 != 0 {
+    if len.is_multiple_of(2) {
         return false
     }
     let half = len / 2;
-    &id_str[..half] == &id_str[half..]
+    id_str[..half] == id_str[half..]
 }
 
 #[allow(dead_code)]
@@ -52,7 +52,7 @@ fn is_invalid_id_part_2(id: u64) -> bool {
     let len = id_str.len();
 
     for sub_len in 1..=len/2 {
-        if len % sub_len != 0 {
+        if !len.is_multiple_of(sub_len) {
             continue;
         }
 

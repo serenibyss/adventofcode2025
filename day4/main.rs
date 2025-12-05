@@ -1,5 +1,4 @@
 use std::{fs, io};
-use std::io::BufRead;
 
 fn main() -> io::Result<()> {
     let raw = fs::read_to_string("day4/input.txt")?;
@@ -8,7 +7,7 @@ fn main() -> io::Result<()> {
     let mut total: u64 = 0;
     loop {
         let positions = get_positions(&grid);
-        if positions.len() == 0 {
+        if positions.is_empty() {
             break;
         }
         total += positions.len() as u64;
@@ -31,7 +30,7 @@ fn to_grid(raw: String) -> Vec<Vec<char>> {
         .collect()
 }
 
-fn check_position(grid: &Vec<Vec<char>>, row: usize, col: usize) -> bool {
+fn check_position(grid: &[Vec<char>], row: usize, col: usize) -> bool {
     if grid[row][col] != '@' {
         return false;
     }
@@ -59,12 +58,12 @@ fn check_position(grid: &Vec<Vec<char>>, row: usize, col: usize) -> bool {
     papers < 4
 }
 
-fn get_positions(grid: &Vec<Vec<char>>) -> Vec<(usize, usize)> {
+fn get_positions(grid: &[Vec<char>]) -> Vec<(usize, usize)> {
     let mut positions: Vec<(usize, usize)> = Vec::new();
 
     for row in 0..grid.len() {
         for col in 0..grid[row].len() {
-            if check_position(&grid, row, col) {
+            if check_position(grid, row, col) {
                 positions.push((row, col));
             }
         }
