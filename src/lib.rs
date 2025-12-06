@@ -1,6 +1,7 @@
 pub mod aocutils {
 
     use std::iter::Rev;
+    use std::time::Instant;
     use either::Either;
 
     pub trait CondRev: Iterator + Sized {
@@ -24,5 +25,20 @@ pub mod aocutils {
             .filter(|&(a, b)| a == b)
             .count();
         matching == a.len() && matching == b.len()
+    }
+
+    pub struct RunTimer {
+        start: Instant,
+    }
+
+    impl RunTimer {
+
+        pub fn new() -> RunTimer {
+            Self{ start: Instant::now() }
+        }
+
+        pub fn finish(&self) {
+            println!("Elapsed Time: {:?}", self.start.elapsed())
+        }
     }
 }

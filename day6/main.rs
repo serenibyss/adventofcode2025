@@ -1,5 +1,5 @@
 use std::{fs, io};
-use adventofcode2025::aocutils::CondRev;
+use adventofcode2025::aocutils::{CondRev, RunTimer};
 
 struct MathTable {
     numbers: Vec<Vec<i64>>,
@@ -84,11 +84,15 @@ impl MathTable {
 }
 
 fn main() -> io::Result<()> {
+    let timer = RunTimer::new();
+
     let table = MathTable::new("day6/input.txt", false)?;
     println!("Standard Sum: {}", table.sum());
 
     let table = MathTable::new("day6/input.txt", true)?;
     println!("Columnar Sum: {}", table.sum());
+
+    timer.finish();
 
     Ok(())
 }
