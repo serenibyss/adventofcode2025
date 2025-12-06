@@ -18,9 +18,12 @@ impl MathTable {
             true => MathTable::read_data_reversed(lines),
             false => MathTable::read_data(lines),
         };
-        let symbols: Vec<char> = symbol_line.split_whitespace()
+        let mut symbols: Vec<char> = symbol_line.split_whitespace()
             .map(|s| s.chars().next().unwrap())
             .collect();
+        if reversed {
+            symbols.reverse();
+        }
         let size = symbols.len();
 
         Ok(MathTable { numbers, symbols, size })
@@ -48,6 +51,7 @@ impl MathTable {
 
     fn read_data_reversed(lines: Vec<&str>) -> Vec<Vec<i64>> {
         let strings: Vec<String> = (0..lines[0].len())
+            .rev()
             .map(|i| lines.iter()
                 .map(|line| line.chars().nth(i).unwrap())
                 .collect::<String>())
@@ -56,9 +60,6 @@ impl MathTable {
         let mut numbers: Vec<Vec<i64>> = vec![Vec::new()];
         for s in strings {
             if s.trim().is_empty() {
-                numbers.last_mut()
-                    .unwrap()
-                    .reverse();
                 numbers.push(Vec::new());
             } else {
                 numbers.last_mut()
@@ -68,9 +69,6 @@ impl MathTable {
                         .unwrap());
             }
         }
-        numbers.last_mut()
-            .unwrap()
-            .reverse();
 
         numbers
     }
@@ -125,10 +123,10 @@ mod tests {
     fn test_reversed_parse() {
         let table = MathTable::new("day6/testdata/input_part_1.txt", true).unwrap();
         assert_eq!(table.size, 4);
-        assert!(cmp(&table.numbers[0], &vec![356, 24, 1]));
-        assert!(cmp(&table.numbers[1], &vec![8, 248, 369]));
-        assert!(cmp(&table.numbers[2], &vec![175, 581, 32]));
-        assert!(cmp(&table.numbers[3], &vec![4, 431, 623]));
+        assert!(cmp(&table.numbers[0], &vec![4, 431, 623]));
+        assert!(cmp(&table.numbers[1], &vec![175, 581, 32]));
+        assert!(cmp(&table.numbers[2], &vec![8, 248, 369]));
+        assert!(cmp(&table.numbers[3], &vec![356, 24, 1]));
     }
 
     #[test]
