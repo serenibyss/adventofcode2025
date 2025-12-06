@@ -8,12 +8,25 @@ struct MathTable {
 
 impl MathTable {
 
-    fn new(input: &str) -> io::Result<MathTable> {
+    fn new(input: &str, reversed: bool) -> io::Result<MathTable> {
         let raw = fs::read_to_string(input)?;
-        let mut lines: Vec<&str> = raw.lines().collect();
 
+        let mut lines: Vec<&str> = raw.lines().collect();
         let symbol_line = lines.pop().unwrap();
 
+        let numbers = match reversed {
+            true => MathTable::read_data_reversed(lines),
+            false => MathTable::read_data(lines),
+        };
+        let symbols: Vec<char> = symbol_line.split_whitespace()
+            .map(|s| s.chars().next().unwrap())
+            .collect();
+        let size = symbols.len();
+
+        Ok(MathTable { numbers, symbols, size })
+    }
+
+    fn read_data(lines: Vec<&str>) -> Vec<Vec<i64>> {
         let rows: Vec<Vec<i64>> = lines.iter()
             .map(|line| line.split_whitespace()
                 .map(|s| s.parse::<i64>().unwrap())
@@ -24,22 +37,46 @@ impl MathTable {
         let col_count = rows[0].len();
 
         let mut numbers = vec![Vec::with_capacity(row_count); col_count];
-        for r in 0..row_count {
+        for row in rows.iter().take(row_count) {
             for c in 0..col_count {
-                numbers[c].push(rows[r][c]);
+                numbers[c].push(row[c]);
             }
         }
 
-        let symbols: Vec<char> = symbol_line.split_whitespace()
-            .map(|s| s.chars().next().unwrap())
-            .collect();
-        let size = symbols.len();
-
-        Ok(MathTable { numbers, symbols, size })
+        numbers
     }
 
-    fn sum_all_formulas(&self) -> i64 {
-        (0..self.size).into_iter()
+    fn read_data_reversed(lines: Vec<&str>) -> Vec<Vec<i64>> {
+        let strings: Vec<String> = (0..lines[0].len())
+            .map(|i| lines.iter()
+                .map(|line| line.chars().nth(i).unwrap())
+                .collect::<String>())
+            .collect();
+
+        let mut numbers: Vec<Vec<i64>> = vec![Vec::new()];
+        for s in strings {
+            if s.trim().is_empty() {
+                numbers.last_mut()
+                    .unwrap()
+                    .reverse();
+                numbers.push(Vec::new());
+            } else {
+                numbers.last_mut()
+                    .unwrap()
+                    .push(s.trim()
+                        .parse::<i64>()
+                        .unwrap());
+            }
+        }
+        numbers.last_mut()
+            .unwrap()
+            .reverse();
+
+        numbers
+    }
+
+    fn sum(&self) -> i64 {
+        (0..self.size)
             .map(|i| (&self.numbers[i], self.symbols[i]))
             .map(|(numbers, symbol)| numbers.iter()
                 .copied()
@@ -54,8 +91,12 @@ impl MathTable {
 }
 
 fn main() -> io::Result<()> {
-    let table = MathTable::new("day6/input.txt")?;
-    println!("Sum: {}", table.sum_all_formulas());
+    let table = MathTable::new("day6/input.txt", false)?;
+    println!("Standard Sum: {}", table.sum());
+
+    let table = MathTable::new("day6/input.txt", true)?;
+    println!("Columnar Sum: {}", table.sum());
+
     Ok(())
 }
 
@@ -65,8 +106,42 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_sum_all_formulas() {
-        let table = MathTable::new("day6/testdata/input_part_1.txt").unwrap();
-        assert_eq!(table.sum_all_formulas(), 4277556);
+    fn test_standard_parse() {
+        let table = MathTable::new("day6/testdata/input_part_1.txt", false).unwrap();
+        assert_eq!(table.size, 4);
+        assert!(cmp(&table.numbers[0], &vec![123, 45, 6]));
+        assert!(cmp(&table.numbers[1], &vec![328, 64, 98]));
+        assert!(cmp(&table.numbers[2], &vec![51, 387, 215]));
+        assert!(cmp(&table.numbers[3], &vec![64, 23, 314]));
+    }
+
+    #[test]
+    fn test_standard_sum() {
+        let table = MathTable::new("day6/testdata/input_part_1.txt", false).unwrap();
+        assert_eq!(table.sum(), 4277556);
+    }
+
+    #[test]
+    fn test_reversed_parse() {
+        let table = MathTable::new("day6/testdata/input_part_1.txt", true).unwrap();
+        assert_eq!(table.size, 4);
+        assert!(cmp(&table.numbers[0], &vec![356, 24, 1]));
+        assert!(cmp(&table.numbers[1], &vec![8, 248, 369]));
+        assert!(cmp(&table.numbers[2], &vec![175, 581, 32]));
+        assert!(cmp(&table.numbers[3], &vec![4, 431, 623]));
+    }
+
+    #[test]
+    fn test_sum_reversed() {
+        let table = MathTable::new("day6/testdata/input_part_1.txt", true).unwrap();
+        assert_eq!(table.sum(), 3263827);
+    }
+
+    fn cmp<T: PartialEq>(a: &Vec<T>, b: &Vec<T>) -> bool {
+        let matching = a.iter()
+            .zip(b.iter())
+            .filter(|&(a, b)| a == b)
+            .count();
+        matching == a.len() && matching == b.len()
     }
 }
