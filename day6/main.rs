@@ -36,41 +36,35 @@ impl MathTable {
                 .collect::<Vec<_>>())
             .collect();
 
-        let row_count = rows.len();
-        let col_count = rows[0].len();
-
-        let mut numbers = vec![Vec::with_capacity(row_count); col_count];
-        for row in rows.iter().take(row_count) {
-            for c in 0..col_count {
-                numbers[c].push(row[c]);
-            }
-        }
-
-        numbers
+        rows.iter().fold(
+            vec![Vec::with_capacity(rows.len()); rows[0].len()],
+            |mut acc, row| {
+                (0..rows[0].len()).for_each(|c| acc[c].push(row[c]));
+                acc
+            })
     }
 
     fn read_data_reversed(lines: Vec<&str>) -> Vec<Vec<i64>> {
-        let strings: Vec<String> = (0..lines[0].len())
+        (0..lines[0].len())
             .rev()
             .map(|i| lines.iter()
                 .map(|line| line.chars().nth(i).unwrap())
                 .collect::<String>())
-            .collect();
-
-        let mut numbers: Vec<Vec<i64>> = vec![Vec::new()];
-        for s in strings {
-            if s.trim().is_empty() {
-                numbers.push(Vec::new());
-            } else {
-                numbers.last_mut()
-                    .unwrap()
-                    .push(s.trim()
-                        .parse::<i64>()
-                        .unwrap());
-            }
-        }
-
-        numbers
+            .fold(Vec::new(), |mut acc: Vec<Vec<i64>>, s| {
+                if s.trim().is_empty() {
+                    acc.push(Vec::new());
+                } else {
+                    if acc.is_empty() {
+                        acc.push(Vec::new());
+                    }
+                    acc.last_mut()
+                        .unwrap()
+                        .push(s.trim()
+                            .parse::<i64>()
+                            .unwrap());
+                }
+                acc
+            })
     }
 
     fn sum(&self) -> i64 {
