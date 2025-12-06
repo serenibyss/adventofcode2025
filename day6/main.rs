@@ -4,31 +4,25 @@ use adventofcode2025::aocutils::CondRev;
 struct MathTable {
     numbers: Vec<Vec<i64>>,
     symbols: Vec<char>,
-    size: usize,
 }
 
 impl MathTable {
 
     fn new(input: &str, reversed: bool) -> io::Result<MathTable> {
         let raw = fs::read_to_string(input)?;
-
-        let mut lines: Vec<&str> = raw.lines().collect();
-        let symbol_line = lines.pop().unwrap();
-
-        let numbers = match reversed {
-            true => MathTable::read_data_reversed(lines),
-            false => MathTable::read_data(lines),
-        };
-
-        let symbols: Vec<char> = symbol_line.split_whitespace()
-            .map(|s| s.chars().next().unwrap())
-            .cond_rev(reversed)
-            .collect();
+        let mut lines = raw.lines().collect::<Vec<_>>();
 
         Ok(MathTable {
-            size: symbols.len(),
-            numbers,
-            symbols,
+            symbols: lines.pop()
+                .unwrap()
+                .split_whitespace()
+                .map(|s| s.chars().next().unwrap())
+                .cond_rev(reversed)
+                .collect(),
+            numbers: match reversed {
+                true => MathTable::read_data_reversed(lines),
+                false => MathTable::read_data(lines),
+            },
         })
     }
 
@@ -70,8 +64,12 @@ impl MathTable {
             })
     }
 
+    fn size(&self) -> usize {
+        self.symbols.len()
+    }
+
     fn sum(&self) -> i64 {
-        (0..self.size)
+        (0..self.size())
             .map(|i| (&self.numbers[i], self.symbols[i]))
             .map(|(numbers, symbol)| numbers.iter()
                 .copied()
@@ -80,7 +78,7 @@ impl MathTable {
                     '*' => acc * n,
                     _ => unreachable!(),
                 })
-                .unwrap_or(0i64))
+                .unwrap_or(0))
             .sum()
     }
 }
@@ -104,7 +102,7 @@ mod tests {
     #[test]
     fn test_standard_parse() {
         let table = MathTable::new("day6/testdata/input_part_1.txt", false).unwrap();
-        assert_eq!(table.size, 4);
+        assert_eq!(table.size(), 4);
         assert!(cmp_vec(&table.numbers[0], &vec![123, 45, 6]));
         assert!(cmp_vec(&table.numbers[1], &vec![328, 64, 98]));
         assert!(cmp_vec(&table.numbers[2], &vec![51, 387, 215]));
@@ -120,7 +118,7 @@ mod tests {
     #[test]
     fn test_reversed_parse() {
         let table = MathTable::new("day6/testdata/input_part_1.txt", true).unwrap();
-        assert_eq!(table.size, 4);
+        assert_eq!(table.size(), 4);
         assert!(cmp_vec(&table.numbers[0], &vec![4, 431, 623]));
         assert!(cmp_vec(&table.numbers[1], &vec![175, 581, 32]));
         assert!(cmp_vec(&table.numbers[2], &vec![8, 248, 369]));
