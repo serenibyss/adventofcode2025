@@ -1,4 +1,5 @@
 use std::{fs, io};
+use adventofcode2025::aocutils::CondRev;
 
 struct MathTable {
     numbers: Vec<Vec<i64>>,
@@ -18,15 +19,17 @@ impl MathTable {
             true => MathTable::read_data_reversed(lines),
             false => MathTable::read_data(lines),
         };
-        let mut symbols: Vec<char> = symbol_line.split_whitespace()
-            .map(|s| s.chars().next().unwrap())
-            .collect();
-        if reversed {
-            symbols.reverse();
-        }
-        let size = symbols.len();
 
-        Ok(MathTable { numbers, symbols, size })
+        let symbols: Vec<char> = symbol_line.split_whitespace()
+            .map(|s| s.chars().next().unwrap())
+            .cond_rev(reversed)
+            .collect();
+
+        Ok(MathTable {
+            size: symbols.len(),
+            numbers,
+            symbols,
+        })
     }
 
     fn read_data(lines: Vec<&str>) -> Vec<Vec<i64>> {
@@ -95,16 +98,17 @@ fn main() -> io::Result<()> {
 #[cfg(test)]
 mod tests {
 
+    use adventofcode2025::aocutils::cmp_vec;
     use super::*;
 
     #[test]
     fn test_standard_parse() {
         let table = MathTable::new("day6/testdata/input_part_1.txt", false).unwrap();
         assert_eq!(table.size, 4);
-        assert!(cmp(&table.numbers[0], &vec![123, 45, 6]));
-        assert!(cmp(&table.numbers[1], &vec![328, 64, 98]));
-        assert!(cmp(&table.numbers[2], &vec![51, 387, 215]));
-        assert!(cmp(&table.numbers[3], &vec![64, 23, 314]));
+        assert!(cmp_vec(&table.numbers[0], &vec![123, 45, 6]));
+        assert!(cmp_vec(&table.numbers[1], &vec![328, 64, 98]));
+        assert!(cmp_vec(&table.numbers[2], &vec![51, 387, 215]));
+        assert!(cmp_vec(&table.numbers[3], &vec![64, 23, 314]));
     }
 
     #[test]
@@ -117,23 +121,15 @@ mod tests {
     fn test_reversed_parse() {
         let table = MathTable::new("day6/testdata/input_part_1.txt", true).unwrap();
         assert_eq!(table.size, 4);
-        assert!(cmp(&table.numbers[0], &vec![4, 431, 623]));
-        assert!(cmp(&table.numbers[1], &vec![175, 581, 32]));
-        assert!(cmp(&table.numbers[2], &vec![8, 248, 369]));
-        assert!(cmp(&table.numbers[3], &vec![356, 24, 1]));
+        assert!(cmp_vec(&table.numbers[0], &vec![4, 431, 623]));
+        assert!(cmp_vec(&table.numbers[1], &vec![175, 581, 32]));
+        assert!(cmp_vec(&table.numbers[2], &vec![8, 248, 369]));
+        assert!(cmp_vec(&table.numbers[3], &vec![356, 24, 1]));
     }
 
     #[test]
     fn test_sum_reversed() {
         let table = MathTable::new("day6/testdata/input_part_1.txt", true).unwrap();
         assert_eq!(table.sum(), 3263827);
-    }
-
-    fn cmp<T: PartialEq>(a: &Vec<T>, b: &Vec<T>) -> bool {
-        let matching = a.iter()
-            .zip(b.iter())
-            .filter(|&(a, b)| a == b)
-            .count();
-        matching == a.len() && matching == b.len()
     }
 }
