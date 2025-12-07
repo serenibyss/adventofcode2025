@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs::File;
 use std::io;
 use std::io::{BufRead, BufReader};
@@ -23,11 +24,13 @@ impl Manifold {
         self.manifold[0].find("S").unwrap()
     }
 
-    fn calc_beams(&self) -> (usize, Vec<Vec<usize>>) {
+    fn calc_beams(&self) -> (usize, usize) {
         let mut splits: usize = 0;
+
         let start_pos = self.start_pos();
-        let mut beams: Vec<Vec<usize>> = vec![Vec::new(); self.manifold.len()];
-        beams[1].push(start_pos);
+        let mut beams: Vec<HashMap<usize, usize>> = (0..self.manifold.len())
+            .map(|_| HashMap::new()).collect();
+        beams[1].insert(start_pos, 1);
 
         for i in 2..self.manifold.len() {
             let line = &self.manifold[i];
@@ -36,25 +39,33 @@ impl Manifold {
             let prev_beam = &a[i-1];
             let curr_beam = &mut b[0];
 
-            for &pos in prev_beam {
+            for (&pos, &num) in prev_beam {
                 let char = line.chars().nth(pos).unwrap();
-                if char == '.' && !curr_beam.contains(&pos) {
-                    curr_beam.push(pos);
+                if char == '.' {
+                    curr_beam.entry(pos)
+                        .and_modify(|x| *x += num)
+                        .or_insert(num);
                 } else if char == '^' {
                     splits += 1;
-                    let left = pos as i32 - 1;
-                    let right = pos as i32 + 1;
-                    if left >= 0 && !curr_beam.contains(&(left as usize)) {
-                        curr_beam.push(left as usize);
+                    let left = pos as isize - 1;
+                    let right = pos as isize + 1;
+
+                    if left >= 0 {
+                        curr_beam.entry(left as usize)
+                            .and_modify(|x| *x += num)
+                            .or_insert(num);
                     }
-                    if (right as usize) < line.len() && !curr_beam.contains(&(right as usize)) {
-                        curr_beam.push(right as usize);
+
+                    if (right as usize) < line.len() {
+                        curr_beam.entry(right as usize)
+                            .and_modify(|x| *x += num)
+                            .or_insert(num);
                     }
                 }
             }
         }
 
-        (splits, beams)
+        (splits, beams[beams.len()-1].values().sum())
     }
 }
 
@@ -62,8 +73,9 @@ fn main() -> io::Result<()> {
     let timer = RunTimer::new();
 
     let manifold = Manifold::new("day7/input.txt")?;
-    let (splits, _) = manifold.calc_beams();
+    let (splits, timelines) = manifold.calc_beams();
     println!("Splits: {}", splits);
+    println!("Timelines: {}", timelines);
 
     timer.finish();
 
@@ -86,5 +98,12 @@ mod tests {
         let manifold = Manifold::new("day7/testdata/input_part_1.txt").unwrap();
         let (splits, _) = manifold.calc_beams();
         assert_eq!(splits, 21);
+    }
+
+    #[test]
+    fn test_calc_beams_timelines() {
+        let manifold = Manifold::new("day7/testdata/input_part_1.txt").unwrap();
+        let (_, timelines) = manifold.calc_beams();
+        assert_eq!(timelines, 40);
     }
 }
