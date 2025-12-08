@@ -206,13 +206,13 @@ impl Calculator {
 }
 
 fn main() -> io::Result<()> {
-    let timer = RunTimer::new();
+    let mut timer = RunTimer::new();
 
     let calculator = Calculator::new("day8/input.txt", 1000)?;
     let (circuits, _) = calculator.calculate_circuits();
     let size = circuits[0].size() * circuits[1].size() * circuits[2].size();
     println!("Largest 3 circuits multiplied (1000): {}", size);
-    timer.finish();
+    timer.mark();
 
     let calculator = Calculator::new("day8/input.txt", usize::MAX)?;
     let (_, unify_point) = calculator.calculate_circuits();

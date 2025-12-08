@@ -19,7 +19,7 @@ pub mod aocutils {
 
     impl<I: Iterator> CondRev for I {}
 
-    pub fn cmp_vec<T: PartialEq>(a: &Vec<T>, b: &Vec<T>) -> bool {
+    pub fn cmp_vec<T: PartialEq>(a: &[T], b: &[T]) -> bool {
         let matching = a.iter()
             .zip(b.iter())
             .filter(|&(a, b)| a == b)
@@ -29,16 +29,36 @@ pub mod aocutils {
 
     pub struct RunTimer {
         start: Instant,
+        times: Vec<Instant>
+    }
+
+    impl Default for RunTimer {
+        fn default() -> Self {
+            Self::new()
+        }
     }
 
     impl RunTimer {
 
-        pub fn new() -> RunTimer {
-            Self{ start: Instant::now() }
+        pub fn new() -> Self {
+            Self {
+                start: Instant::now(),
+                times: Vec::new()
+            }
         }
 
-        pub fn finish(&self) {
-            println!("Elapsed Time: {:?}", self.start.elapsed())
+        pub fn mark(&mut self) {
+            self.times.push(Instant::now());
+        }
+
+        pub fn finish(&mut self) {
+            self.mark();
+            println!();
+            let mut prev_instant = self.start;
+            for (i, instant) in self.times.iter().enumerate() {
+                println!("Elapsed Time (Part {}): {:?}", i + 1, instant.duration_since(prev_instant));
+                prev_instant = *instant;
+            }
         }
     }
 }

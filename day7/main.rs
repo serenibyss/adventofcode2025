@@ -70,7 +70,7 @@ impl Manifold {
 }
 
 fn main() -> io::Result<()> {
-    let timer = RunTimer::new();
+    let mut timer = RunTimer::new();
 
     let manifold = Manifold::new("day7/input.txt")?;
     let (splits, timelines) = manifold.calc_beams();

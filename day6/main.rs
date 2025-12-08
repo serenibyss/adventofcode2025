@@ -84,14 +84,14 @@ impl MathTable {
 }
 
 fn main() -> io::Result<()> {
-    let timer = RunTimer::new();
+    let mut timer = RunTimer::new();
 
     let table = MathTable::new("day6/input.txt", false)?;
     println!("Standard Sum: {}", table.sum());
+    timer.mark();
 
     let table = MathTable::new("day6/input.txt", true)?;
     println!("Columnar Sum: {}", table.sum());
-
     timer.finish();
 
     Ok(())
